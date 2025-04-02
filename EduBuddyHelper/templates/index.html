@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EduBuddy - Your Educational Companion</title>
+    
+    <!-- Tailwind CSS via CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Highlight.js for syntax highlighting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/atom-one-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+    
+    <!-- Marked.js for Markdown parsing -->
+    <script src="https://cdn.jsdelivr.net/npm/marked@4.3.0/marked.min.js"></script>
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    
+    <!-- Configure Tailwind -->
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#eef2ff',
+                            100: '#e0e7ff',
+                            200: '#c7d2fe',
+                            300: '#a5b4fc',
+                            400: '#818cf8',
+                            500: '#6366f1',
+                            600: '#4f46e5',
+                            700: '#4338ca',
+                            800: '#3730a3',
+                            900: '#312e81',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gray-50 text-gray-900 dark:bg-black dark:text-white transition-colors duration-300">
+    <div class="flex flex-col h-screen max-h-screen">
+        <!-- Header -->
+        <header class="bg-white dark:bg-gray-900 shadow-sm py-4 px-6 flex justify-between items-center border-b border-gray-200 dark:border-gray-800">
+            <div class="flex items-center">
+                <h1 class="text-xl font-bold text-primary-600 dark:text-primary-400">EduBuddy</h1>
+                <span class="ml-2 text-xs bg-primary-100 dark:bg-primary-900 text-primary-800 dark:text-primary-200 py-1 px-2 rounded-full">Beta</span>
+            </div>
+            
+            <div class="flex items-center space-x-4">
+                <!-- Subject-Based Persona Selector -->
+                <div class="relative">
+                    <select id="persona-selector" class="appearance-none bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-md py-2 px-3 pr-8 focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm">
+                        <option value="stem">STEM</option>
+                        <option value="coding">Coding</option>
+                        <option value="business">Business</option>
+                        <option value="general">General Learning</option>
+                        <option value="language">Language Arts</option>
+                    </select>
+                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700 dark:text-gray-300">
+                        <i class="fas fa-chevron-down text-xs"></i>
+                    </div>
+                </div>
+                
+                <!-- Clear Chat Button -->
+                <button 
+                    id="clear-chat-btn" 
+                    class="flex items-center text-sm bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 px-3 py-2 rounded-lg transition-colors text-gray-700 dark:text-gray-300"
+                    aria-label="Clear chat history"
+                >
+                    <i class="fas fa-trash-alt mr-2"></i>
+                    <span>Clear Chat</span>
+                </button>
+                
+                <!-- Dark Mode Toggle -->
+                <button id="theme-toggle" aria-label="Toggle Dark Mode" class="text-gray-500 dark:text-gray-400 hover:text-primary-500 dark:hover:text-primary-400 transition-colors">
+                    <i class="fas fa-moon dark:hidden"></i>
+                    <i class="fas fa-sun hidden dark:block"></i>
+                </button>
+            </div>
+        </header>
+        
+        <!-- Main Chat Area -->
+        <main class="flex-1 overflow-y-auto p-4 md:p-6" id="chat-container">
+            <!-- Welcome Message -->
+            <div class="welcome-container mb-6 fade-in">
+                <div class="max-w-2xl mx-auto bg-white dark:bg-gray-900 rounded-lg shadow-sm p-6 border border-gray-200 dark:border-gray-800">
+                    <h2 class="text-xl font-semibold mb-4">Welcome to EduBuddy! 👋</h2>
+                    <p class="mb-3">I'm your educational assistant, ready to help you learn and explore new topics. Choose a subject area above and ask me anything!</p>
+                    
+                    <!-- STEM Suggestions -->
+                    <div id="stem-suggestions" class="subject-suggestions mt-4 flex flex-wrap gap-2">
+                        <button class="suggestion-btn bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 px-3 py-2 rounded-lg text-sm transition-colors">What is photosynthesis?</button>
+                        <button class="suggestion-btn bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 px-3 py-2 rounded-lg text-sm transition-colors">Explain Newton's laws of motion</button>
+                        <button class="suggestion-btn bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 px-3 py-2 rounded-lg text-sm transition-colors">How do I solve quadratic equations?</button>
+                    </div>
+                    
+                    <!-- Coding Suggestions -->
+                    <div id="coding-suggestions" class="subject-suggestions mt-4 flex flex-wrap gap-2 hidden">
+                        <button class="suggestion-btn bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 px-3 py-2 rounded-lg text-sm transition-colors">Explain object-oriented programming</button>
+                        <button class="suggestion-btn bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 px-3 py-2 rounded-lg text-sm transition-colors">What is a RESTful API?</button>
+                        <button class="suggestion-btn bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 px-3 py-2 rounded-lg text-sm transition-colors">How do I debug JavaScript code?</button>
+                    </div>
+                    
+                    <!-- Business Suggestions -->
+                    <div id="business-suggestions" class="subject-suggestions mt-4 flex flex-wrap gap-2 hidden">
+                        <button class="suggestion-btn bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 px-3 py-2 rounded-lg text-sm transition-colors">Explain market segmentation</button>
+                        <button class="suggestion-btn bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 px-3 py-2 rounded-lg text-sm transition-colors">What is ROI and how is it calculated?</button>
+                        <button class="suggestion-btn bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 px-3 py-2 rounded-lg text-sm transition-colors">How do I create a business plan?</button>
+                    </div>
+                    
+                    <!-- General Learning Suggestions -->
+                    <div id="general-suggestions" class="subject-suggestions mt-4 flex flex-wrap gap-2 hidden">
+                        <button class="suggestion-btn bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 px-3 py-2 rounded-lg text-sm transition-colors">What are effective study techniques?</button>
+                        <button class="suggestion-btn bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 px-3 py-2 rounded-lg text-sm transition-colors">How can I improve my critical thinking?</button>
+                        <button class="suggestion-btn bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 px-3 py-2 rounded-lg text-sm transition-colors">Explain the concept of metacognition</button>
+                    </div>
+                    
+                    <!-- Language Arts Suggestions -->
+                    <div id="language-suggestions" class="subject-suggestions mt-4 flex flex-wrap gap-2 hidden">
+                        <button class="suggestion-btn bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 px-3 py-2 rounded-lg text-sm transition-colors">How do I write a persuasive essay?</button>
+                        <button class="suggestion-btn bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 px-3 py-2 rounded-lg text-sm transition-colors">Explain literary devices in poetry</button>
+                        <button class="suggestion-btn bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 px-3 py-2 rounded-lg text-sm transition-colors">What are the elements of a good story?</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Messages will be added here by JS -->
+            <div id="messages-container" class="max-w-3xl mx-auto space-y-6"></div>
+        </main>
+        
+        <!-- Follow-up Suggestions Dropdown (fixed at bottom, above input) -->
+        <div id="suggestions-container" class="hidden">
+            <div class="max-w-3xl mx-auto relative">
+                <button 
+                    id="suggestions-dropdown-btn" 
+                    type="button" 
+                    class="flex items-center text-sm bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 px-3 py-2 rounded-lg transition-colors"
+                    aria-expanded="false"
+                    aria-haspopup="true"
+                >
+                    <span>Follow-up Questions</span>
+                    <i class="fas fa-chevron-down ml-2"></i>
+                </button>
+                <div id="suggestions-dropdown" class="absolute left-0 mt-2 w-64 rounded-md shadow-lg bg-white dark:bg-gray-800 ring-1 ring-black ring-opacity-5 focus:outline-none z-10 hidden" role="menu" aria-orientation="vertical">
+                    <div id="suggestions" class="py-1" role="none"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Input Area -->
+        <div class="bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 py-4 px-4">
+            <div class="max-w-3xl mx-auto">
+                <!-- Function Buttons -->
+                <div class="mb-3 flex justify-between items-center">
+                    <div class="flex flex-wrap gap-2">
+                        <button type="button" id="summarize-btn" class="function-btn flex items-center text-sm bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 px-3 py-2 rounded-lg transition-colors">
+                            <i class="fas fa-compress-alt mr-2"></i>
+                            <span>Summarize</span>
+                        </button>
+                        <button type="button" id="simplify-btn" class="function-btn flex items-center text-sm bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 px-3 py-2 rounded-lg transition-colors">
+                            <i class="fas fa-child mr-2"></i>
+                            <span>Simplify</span>
+                        </button>
+                        <button type="button" id="elaborate-btn" class="function-btn flex items-center text-sm bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 px-3 py-2 rounded-lg transition-colors">
+                            <i class="fas fa-expand-alt mr-2"></i>
+                            <span>Elaborate</span>
+                        </button>
+                        <button type="button" id="examples-btn" class="function-btn flex items-center text-sm bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 px-3 py-2 rounded-lg transition-colors">
+                            <i class="fas fa-list-ul mr-2"></i>
+                            <span>Examples</span>
+                        </button>
+                    </div>
+                    <!-- API Key Status Indicators -->
+                    <div class="flex space-x-2 text-xs">
+                        <span id="gemini-status" class="px-2 py-1 rounded-full bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200">
+                            <i class="fas fa-exclamation-circle mr-1"></i> Gemini API
+                        </span>
+                        <span id="whisper-status" class="px-2 py-1 rounded-full bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200">
+                            <i class="fas fa-exclamation-circle mr-1"></i> Whisper API
+                        </span>
+                    </div>
+                </div>
+                
+                <form id="chat-form" class="flex items-end gap-2">
+                    <div class="relative flex-1">
+                        <textarea 
+                            id="user-input" 
+                            rows="1" 
+                            placeholder="Ask EduBuddy anything..." 
+                            class="w-full resize-none bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg py-3 px-4 pr-12 focus:outline-none focus:ring-2 focus:ring-primary-500 dark:text-white"
+                        ></textarea>
+                        <button 
+                            type="button" 
+                            id="voice-input-btn" 
+                            class="absolute right-3 bottom-3 text-gray-500 dark:text-gray-400 hover:text-primary-500 dark:hover:text-primary-400"
+                            aria-label="Record voice input"
+                        >
+                            <i class="fas fa-microphone"></i>
+                        </button>
+                    </div>
+                    <button 
+                        type="submit" 
+                        id="send-btn" 
+                        class="bg-primary-600 hover:bg-primary-700 text-white rounded-lg p-3 flex-shrink-0 disabled:opacity-50"
+                        aria-label="Send message"
+                    >
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </form>
+                <div id="recording-indicator" class="hidden mt-2 text-sm text-red-500 animate-pulse">
+                    <i class="fas fa-circle"></i> Recording... (click again to stop)
+                </div>
+                
+                <!-- API services are now configured by the application owner -->
+            </div>
+        </div>
+    </div>
+    
+    <!-- Message Templates (hidden) -->
+    <template id="user-message-template">
+        <div class="message user-message fade-in mb-6">
+            <div class="flex items-start justify-end">
+                <div class="mr-3 flex-1 text-right">
+                    <div class="bg-primary-100 dark:bg-primary-700 px-4 py-3 rounded-lg inline-block">
+                        <p class="message-text text-left"></p>
+                    </div>
+                </div>
+                <div class="flex-shrink-0 w-8 h-8 rounded-full bg-primary-100 dark:bg-primary-900 flex items-center justify-center text-primary-600 dark:text-primary-400">
+                    <i class="fas fa-user"></i>
+                </div>
+            </div>
+        </div>
+    </template>
+    
+    <template id="bot-message-template">
+        <div class="message bot-message fade-in mb-6">
+            <div class="flex items-start">
+                <div class="flex-shrink-0 w-8 h-8 rounded-full bg-primary-100 dark:bg-primary-900 flex items-center justify-center text-primary-600 dark:text-primary-400">
+                    <i class="fas fa-robot"></i>
+                </div>
+                <div class="ml-3 flex-1">
+                    <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 px-4 py-3 rounded-lg shadow-sm">
+                        <p class="message-text"></p>
+                        <div class="message-actions mt-3 flex gap-2 justify-end">
+                            <button class="copy-btn text-gray-500 hover:text-primary-500 dark:text-gray-400 dark:hover:text-primary-400" aria-label="Copy to clipboard">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                            <button class="retry-btn text-gray-500 hover:text-primary-500 dark:text-gray-400 dark:hover:text-primary-400" aria-label="Retry response">
+                                <i class="fas fa-redo-alt"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </template>
+    
+    <template id="typing-indicator-template">
+        <div class="message bot-message typing-indicator fade-in mb-6">
+            <div class="flex items-start">
+                <div class="flex-shrink-0 w-8 h-8 rounded-full bg-primary-100 dark:bg-primary-900 flex items-center justify-center text-primary-600 dark:text-primary-400">
+                    <i class="fas fa-robot"></i>
+                </div>
+                <div class="ml-3 flex-1">
+                    <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 px-4 py-3 rounded-lg shadow-sm">
+                        <div class="flex space-x-2">
+                            <div class="dot-typing"></div>
+                            <div class="dot-typing animation-delay-200"></div>
+                            <div class="dot-typing animation-delay-400"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </template>
+    
+    <!-- JavaScript Files -->
+    <script src="{{ url_for('static', filename='js/chat.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/theme.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/voice.js') }}"></script>
+</body>
+</html>
